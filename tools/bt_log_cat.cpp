@@ -13,6 +13,10 @@ int main(int argc, char* argv[])
     }
 
     FILE* file = fopen(argv[1], "rb");
+    char concatBufName[300];
+    strcpy(concatBufName, argv[1]);
+    strcat(concatBufName, "_post.fbl");
+    FILE* file_post = fopen(concatBufName, "w");
 
     if (!file)
     {
@@ -29,7 +33,8 @@ int main(int argc, char* argv[])
 
     const auto bt_header_size = flatbuffers::ReadScalar<uint32_t>(&buffer[0]);
 
-    auto behavior_tree = Serialization::GetBehaviorTree(&buffer[4]);
+    //auto behavior_tree = Serialization::GetBehaviorTree(&buffer[4]);
+    auto behavior_tree = flatbuffers::GetMutableRoot<Serialization::BehaviorTree>(&buffer[4]);
 
     std::unordered_map<uint16_t, std::string> names_by_uid;
     std::unordered_map<uint16_t, const Serialization::TreeNode*> node_by_uid;
@@ -37,6 +42,19 @@ int main(int argc, char* argv[])
 
     for (const Serialization::TreeNode* node : *(behavior_tree->nodes()))
     {
+        Serialization::TreeNode* node_mutable = (Serialization::TreeNode*)node;
+        
+        if (std::string(node_mutable->instance_name()->c_str()).compare("GazeTrackingAsync") == 0 ) {
+            
+            flatbuffers::String* name_mutable = (flatbuffers::String*)node_mutable->instance_name();
+            flatbuffers::String* name_reg_mutable = (flatbuffers::String*)node_mutable->registration_name();
+            char var[20] = "bbbbbbbbbbbbbb";
+            name_mutable->Mutate(0, *var);
+            name_mutable->Mutate(1, *var);
+            name_mutable->Mutate(1, *var);
+            name_reg_mutable->Mutate(0, *var);
+        }
+        
         names_by_uid.insert({node->uid(), std::string(node->instance_name()->c_str())});
         node_by_uid.insert({node->uid(), node});
         max_uid = std::max(max_uid, node->uid());
@@ -95,6 +113,7 @@ int main(int argc, char* argv[])
         return "Undefined";
     };
 
+    /*
     for (size_t index = bt_header_size + 4; index < length; index += 12)
     {
         const uint16_t uid = flatbuffers::ReadScalar<uint16_t>(&buffer[index + 8]);
@@ -108,6 +127,10 @@ int main(int argc, char* argv[])
                printStatus(flatbuffers::ReadScalar<Serialization::NodeStatus>(&buffer[index + 10])),
                printStatus(flatbuffers::ReadScalar<Serialization::NodeStatus>(&buffer[index + 11])));
     }
+    */
+    auto ret = fwrite(buffer.data(), sizeof(char), length, file_post);
+    fclose(file_post);
+    std::cout << "AAAAAAAAAAAAAAAA" << std::endl;
 
     return 0;
 }

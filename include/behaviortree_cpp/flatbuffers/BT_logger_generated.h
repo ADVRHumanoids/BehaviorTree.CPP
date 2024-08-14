@@ -606,6 +606,13 @@ struct BehaviorTree FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table
         const flatbuffers::Vector<flatbuffers::Offset<Serialization::TreeNode>>*>(
         VT_NODES);
   }
+  //tori addition, not sure if correct
+  flatbuffers::Vector<flatbuffers::Offset<Serialization::TreeNode>>* nodes_mutable()
+  {
+    return GetPointer<
+        flatbuffers::Vector<flatbuffers::Offset<Serialization::TreeNode>>*>(
+        VT_NODES);
+  }
   const flatbuffers::Vector<flatbuffers::Offset<Serialization::NodeModel>>*
   node_models() const
   {
